@@ -1,0 +1,48 @@
+# Production stack for the Ubuntu VPS.
+# Usage:
+#   cp deploy/.env.example deploy/.env   # then edit it
+#   docker compose -f docker-compose.prod.yml --env-file deploy/.env up -d --build
+services:
+  app:
+    build: .
+    container_name: isc-steam-app
+    restart: unless-stopped
+    environment:
+      PORT: 5174
+      MONGODB_URI: mongodb://mongo:27017/isc-steam
+      CLIENT_ORIGIN: https://${DOMAIN}
+      JWT_SECRET: ${JWT_SECRET}
+      PUBLISHER_CODE: ${PUBLISHER_CODE}
+    depends_on:
+      - mongo
+    volumes:
+      - maven-cache:/app/server/vendor/maven-cache
+
+  mongo:
+    image: mongo:7
+    container_name: isc-steam-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+
+  caddy:
+    image: caddy:2
+    container_name: isc-steam-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
+
+volumes:
+  mongo-data:
+  maven-cache:
+  caddy-data:
+  caddy-config:
