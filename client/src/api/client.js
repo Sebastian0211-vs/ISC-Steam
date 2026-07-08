@@ -1,8 +1,22 @@
 // Minimal fetch wrapper. Relative /api URLs work in dev (Vite proxy)
 // and in production (Express serves the built client, or same origin).
+
+export function getToken() {
+  return localStorage.getItem('token');
+}
+
+export function setToken(token) {
+  if (token) localStorage.setItem('token', token);
+  else localStorage.removeItem('token');
+}
+
 async function request(path, options = {}) {
+  const token = getToken();
   const res = await fetch(`/api${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     ...options,
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
@@ -14,7 +28,9 @@ async function request(path, options = {}) {
     } catch {
       /* non-JSON error body */
     }
-    throw new Error(message);
+    const err = new Error(message);
+    err.status = res.status;
+    throw err;
   }
   return res.status === 204 ? null : res.json();
 }
@@ -25,3 +41,9 @@ export const api = {
   patch: (path, body) => request(path, { method: 'PATCH', body }),
   delete: (path) => request(path, { method: 'DELETE' }),
 };
+
+/** Direct link usable in <a href> — passes the JWT as a query param. */
+export function downloadUrl(slug) {
+  const token = getToken();
+  return `/api/games/${slug}/download${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+}

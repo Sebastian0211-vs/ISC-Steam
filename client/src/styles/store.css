@@ -1,0 +1,345 @@
+/* ==========================================================================
+   ISC Steam — store components.
+   Steam-inspired layout (featured capsule, cover grid, buy-box) rendered
+   entirely with the ISC design tokens from theme.css.
+   ========================================================================== */
+
+/* Featured hero -------------------------------------------------------- */
+
+.store-hero {
+  background: var(--isc-hero-bg);
+  padding: var(--space-5) 0;
+}
+
+.store-hero .container {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+.featured-capsule {
+  position: relative;
+  display: block;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  min-height: 320px;
+  background: var(--isc-paper-dim);
+  box-shadow: var(--shadow-card);
+}
+
+.featured-capsule img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 300ms ease;
+}
+
+.featured-capsule:hover img { transform: scale(1.03); }
+
+.featured-capsule .featured-overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: var(--space-4);
+  background: linear-gradient(transparent, rgb(0 0 0 / 0.82));
+  color: #fff;
+}
+
+.featured-overlay h2 { color: #fff; margin: 0 0 var(--space-1); }
+.featured-overlay p { color: rgb(255 255 255 / 0.85); margin: 0; font-size: var(--text-sm); }
+
+.hero-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  justify-content: center;
+  color: #f4f4f2;
+}
+
+.hero-side h1 { color: #f4f4f2; font-size: var(--text-xl); margin: 0; }
+.hero-side p { color: #9c9c99; margin: 0; }
+
+/* Toolbar (search + filters) ------------------------------------------- */
+
+.store-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.store-toolbar .input { max-width: 20rem; }
+
+.tag-chip {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--isc-line);
+  background: transparent;
+  color: var(--isc-muted);
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.tag-chip:hover { border-color: var(--isc-magenta); color: var(--isc-ink-strong); }
+.tag-chip.active {
+  border-color: var(--isc-magenta);
+  background: var(--isc-magenta);
+  color: var(--isc-on-magenta);
+}
+
+/* Capsule grid ----------------------------------------------------------- */
+
+.capsule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--space-3);
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--isc-paper-dim);
+  border: 1px solid var(--isc-line);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+
+.game-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
+  border-color: var(--isc-magenta);
+  text-decoration: none;
+}
+
+.game-card .cover {
+  aspect-ratio: 2 / 1;
+  background: var(--isc-hero-bg);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.game-card .cover img { width: 100%; height: 100%; object-fit: cover; }
+
+.cover-fallback {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  color: #f4f4f2;
+  padding: var(--space-3);
+  text-align: center;
+  background: var(--isc-hero-bg);
+}
+
+.game-card .card-body { padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); flex: 1; }
+.game-card h3 { margin: 0; font-size: var(--text-md); }
+.game-card .card-desc {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--isc-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-meta {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--isc-muted);
+}
+
+.tag-row { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+
+/* Game detail page -------------------------------------------------------- */
+
+.game-page-head {
+  background: var(--isc-hero-bg);
+  padding: var(--space-4) 0;
+  color: #f4f4f2;
+}
+
+.game-page-head h1 { color: #f4f4f2; margin: 0; font-size: var(--text-xl); }
+.game-page-head .eyebrow { color: #9c9c99; }
+
+.game-detail {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.screenshot-main {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: var(--isc-hero-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--isc-line);
+}
+
+.screenshot-strip { display: flex; gap: var(--space-2); margin-top: var(--space-2); flex-wrap: wrap; }
+
+.screenshot-thumb {
+  width: 7rem;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.screenshot-thumb.active,
+.screenshot-thumb:hover { border-color: var(--isc-magenta); opacity: 1; }
+
+.game-description { white-space: pre-line; }
+
+/* The "buy box" — Steam's purchase panel, repurposed for free downloads */
+
+.buybox {
+  position: sticky;
+  top: var(--space-4);
+  border: 1px solid var(--isc-line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--isc-paper-dim);
+}
+
+.buybox .cover { width: 100%; aspect-ratio: 2 / 1; object-fit: cover; display: block; }
+
+.buybox-body { padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-3); }
+
+.download-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  background: var(--isc-paper);
+  border: 1px solid var(--isc-line);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+}
+
+.price-free {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--isc-ink-strong);
+}
+
+.meta-list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.meta-list dt { color: var(--isc-muted); font-family: var(--font-mono); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.08em; align-self: center; }
+.meta-list dd { margin: 0; }
+
+/* Build status ------------------------------------------------------------ */
+
+.status-pill {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.status-success { background: var(--isc-mint); color: var(--isc-on-facet); }
+.status-failed { background: var(--isc-rose); color: var(--isc-on-facet); }
+.status-running { background: var(--isc-sun); color: var(--isc-on-facet); }
+.status-none { background: var(--isc-paper-dim); color: var(--isc-muted); border: 1px solid var(--isc-line); }
+
+.build-log {
+  background: var(--isc-hero-bg);
+  color: #d4d4d2;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  max-height: 20rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+/* Dashboard / admin tables -------------------------------------------------- */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.table th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--isc-muted);
+  padding: var(--space-2);
+  border-bottom: 2px solid var(--isc-line);
+}
+
+.table td { padding: var(--space-2); border-bottom: 1px solid var(--isc-line); vertical-align: middle; }
+
+.row-actions { display: flex; gap: var(--space-1); flex-wrap: wrap; }
+
+.btn-sm { padding: 0.25rem 0.6rem; font-size: var(--text-xs); }
+
+/* Auth forms ---------------------------------------------------------------- */
+
+.auth-card {
+  max-width: 26rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.field { display: flex; flex-direction: column; gap: var(--space-1); }
+
+.form-error {
+  background: var(--isc-rose);
+  color: var(--isc-on-facet);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-3); margin-bottom: var(--space-4); }
+
+.stat-card {
+  border: 1px solid var(--isc-line);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  background: var(--isc-paper-dim);
+}
+
+.stat-card .stat-value { font-family: var(--font-display); font-size: var(--text-xl); font-weight: 700; color: var(--isc-ink-strong); }
+.stat-card .stat-label { font-family: var(--font-mono); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--isc-muted); }
+
+/* Responsive ---------------------------------------------------------------- */
+
+@media (max-width: 56rem) {
+  .store-hero .container,
+  .game-detail { grid-template-columns: 1fr; }
+  .buybox { position: static; }
+}

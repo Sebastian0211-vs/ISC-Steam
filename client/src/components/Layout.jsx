@@ -1,11 +1,10 @@
-import { NavLink, Outlet, Link } from 'react-router-dom';
+import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom';
 import logoBlack from '../assets/logo/isc-inline-black.svg';
 import logoWhite from '../assets/logo/isc-inline-white.svg';
 import useTheme from '../hooks/useTheme.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
-// App shell shared by every page: ridge topline, navbar, footer.
-// Rename APP_NAME per project (or lift it into an env/config file).
-const APP_NAME = 'App Template';
+const APP_NAME = 'Steam';
 
 function SunIcon() {
   return (
@@ -26,7 +25,14 @@ function MoonIcon() {
 
 export default function Layout() {
   const { theme, toggleTheme } = useTheme();
+  const { user, isStudent, isAdmin, logout } = useAuth();
+  const navigate = useNavigate();
   const logo = theme === 'dark' ? logoWhite : logoBlack;
+
+  function onLogout() {
+    logout();
+    navigate('/');
+  }
 
   return (
     <>
@@ -38,9 +44,21 @@ export default function Layout() {
             <span className="brand-app">{APP_NAME}</span>
           </Link>
           <nav className="nav" aria-label="Main">
-            <NavLink to="/" end>Home</NavLink>
-            <NavLink to="/items">Items demo</NavLink>
-            <NavLink to="/style-guide">Style guide</NavLink>
+            <NavLink to="/" end>Store</NavLink>
+            {isStudent && <NavLink to="/dashboard">My games</NavLink>}
+            {isAdmin && <NavLink to="/admin">Admin</NavLink>}
+            {user ? (
+              <button type="button" className="btn btn-ghost" onClick={onLogout} title={`Signed in as ${user.displayName}`}>
+                Sign out
+              </button>
+            ) : (
+              <>
+                <NavLink to="/login">Sign in</NavLink>
+                <NavLink to="/register" className="btn btn-primary" style={{ color: 'var(--isc-on-magenta)' }}>
+                  Join
+                </NavLink>
+              </>
+            )}
             <button
               type="button"
               className="theme-toggle"
@@ -62,7 +80,7 @@ export default function Layout() {
         <div className="container footer-inner">
           <img src={logo} alt="" aria-hidden="true" />
           <span>
-            Built on the ISC app template · logos from{' '}
+            ISC Steam — games by ISC students, HES-SO Valais · logos from{' '}
             <a href="https://github.com/ISC-HEI/isc-logos">ISC-HEI/isc-logos</a> (CC BY-NC-SA 4.0)
           </span>
         </div>

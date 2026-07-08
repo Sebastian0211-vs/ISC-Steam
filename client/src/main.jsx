@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import '@fontsource-variable/space-grotesk';
 import '@fontsource-variable/inter';
@@ -9,24 +9,58 @@ import '@fontsource/jetbrains-mono/600.css';
 import './styles/theme.css';
 import './styles/base.css';
 import './styles/app.css';
+import './styles/store.css';
 
+import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import Layout from './components/Layout.jsx';
-import Home from './pages/Home.jsx';
-import Items from './pages/Items.jsx';
+import Store from './pages/Store.jsx';
+import GameDetail from './pages/GameDetail.jsx';
+import Login from './pages/Login.jsx';
+import Register from './pages/Register.jsx';
+import Dashboard from './pages/Dashboard.jsx';
+import Admin from './pages/Admin.jsx';
+import ManifestDocs from './pages/ManifestDocs.jsx';
 import StyleGuide from './pages/StyleGuide.jsx';
 import NotFound from './pages/NotFound.jsx';
 
+function RequireRole({ check, children }) {
+  const auth = useAuth();
+  if (auth.loading) return null;
+  return check(auth) ? children : <Navigate to="/login" replace />;
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="items" element={<Items />} />
-          <Route path="style-guide" element={<StyleGuide />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route index element={<Store />} />
+            <Route path="game/:slug" element={<GameDetail />} />
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+            <Route path="docs/manifest" element={<ManifestDocs />} />
+            <Route
+              path="dashboard"
+              element={
+                <RequireRole check={(a) => a.isStudent}>
+                  <Dashboard />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="admin"
+              element={
+                <RequireRole check={(a) => a.isAdmin}>
+                  <Admin />
+                </RequireRole>
+              }
+            />
+            <Route path="style-guide" element={<StyleGuide />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   </React.StrictMode>,
 );

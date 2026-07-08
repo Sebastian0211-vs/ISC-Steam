@@ -1,63 +1,83 @@
-# ISC App Template
+# ISC Steam
 
-A shared starting point for web apps: **Vite + React** client, **Express** API, **MongoDB** via Mongoose — styled with the ISC visual identity from [ISC-HEI/isc-logos](https://github.com/ISC-HEI/isc-logos).
+A Steam-style library for the games made by ISC students at HES-SO Valais. Students submit
+their Git repo, the platform clones it, reads an [`isc.json` manifest](docs/ISC_MANIFEST.md),
+compiles the Scala sources against **FunGraphics**, and packages a runnable download
+(fat jar + `run.bat`/`run.sh`) stored in MongoDB GridFS.
+
+Built on the ISC app template: **Vite + React** client, **Express** API, **MongoDB** via
+Mongoose — styled with the ISC visual identity from [ISC-HEI/isc-logos](https://github.com/ISC-HEI/isc-logos).
 
 ## Quick start
 
-Requires Node ≥ 20 and (optionally) Docker for MongoDB.
+Requires **Node ≥ 20**, **git**, **Scala 2.13** (`scalac` on the PATH, needed to build games),
+and (optionally) Docker for MongoDB.
 
 ```bash
 npm install          # installs both workspaces
+cp .env.example server/.env   # then edit JWT_SECRET and PUBLISHER_CODE
 npm run db:up        # starts MongoDB in Docker (or use your own instance)
 npm run dev          # runs API (:5174) and client (:5173) together
 ```
 
-Open http://localhost:5173. The hero shows a live status line for the API and database. Everything works without MongoDB too — data routes just return 503 until it's up.
+Open http://localhost:5173. **The first account you register becomes the admin.**
+Everything works without MongoDB too — data routes just return 503 until it's up.
+
+## How it works
+
+**Roles**
+
+- **Visitor** — anyone can register; can browse and download games.
+- **Student (publisher)** — registers with the class code (`PUBLISHER_CODE` in `server/.env`);
+  can submit repos, trigger rebuilds and read build logs on `/dashboard`.
+- **Admin** — first registered account (or promoted later); moderates games
+  (publish/feature), manages accounts on `/admin`.
+
+**Publishing flow**
+
+1. A student adds an [`isc.json`](docs/ISC_MANIFEST.md) at the root of their game repo
+   ([example](docs/examples/isctaker.isc.json)) and submits the repo URL on `/dashboard`.
+2. The build pipeline (`server/src/services/pipeline.js`) clones the repo, validates the
+   manifest, imports cover/screenshots into GridFS, compiles all `.scala` sources with
+   `scalac` against the FunGraphics jar (from the repo root, or vendored in `server/vendor/`),
+   merges engine + `scala-library` into one runnable fat jar, and zips it with launcher
+   scripts. Builds run one at a time; the full log is visible on the dashboard.
+3. An admin reviews the game and publishes it — it appears in the store, downloadable by
+   any signed-in account. Players just unzip and double-click `run.bat` / `run.sh`
+   (only Java 11+ required).
 
 ## Structure
 
 ```
-├── client/                  Vite + React
+├── client/                    Vite + React
 │   └── src/
-│       ├── api/client.js    fetch wrapper for /api
-│       ├── components/      Layout (topbar, footer, ridge)
-│       ├── pages/           Home, Items demo, StyleGuide, NotFound
-│       ├── styles/
-│       │   ├── theme.css    ← design tokens (the shared identity)
-│       │   ├── base.css     reusable classes: .btn, .card, .badge, .input…
-│       │   └── app.css      app shell styles
-│       └── assets/logo/     official ISC SVGs
-├── server/                  Express + Mongoose
+│       ├── api/client.js      fetch wrapper (+ JWT header, download links)
+│       ├── context/           AuthContext (login/register/roles)
+│       ├── components/        Layout (topbar, footer, ridge), GameCard
+│       ├── pages/             Store, GameDetail, Login, Register,
+│       │                      Dashboard (publisher), Admin, ManifestDocs
+│       └── styles/            theme.css (tokens) · store.css (Steam-like UI)
+├── server/                    Express + Mongoose
+│   ├── vendor/                fallback FunGraphics jar(s) go here
 │   └── src/
-│       ├── index.js         app entry, /api/health
-│       ├── config/db.js     Mongo connection (non-fatal in dev)
-│       ├── models/          Item.js (example)
-│       ├── controllers/     itemController.js (example)
-│       ├── routes/          items.js (example)
-│       └── middleware/      errorHandler, requireDB
-├── docker-compose.yml       local MongoDB
-└── .env.example             server configuration
+│       ├── models/            User (roles), Game (metadata + build state)
+│       ├── controllers/       auth, games (store/publish/download), admin
+│       ├── services/          manifest.js (isc.json) · pipeline.js (clone→compile→package)
+│       ├── config/            db.js · gridfs.js (packages + images)
+│       └── middleware/        auth (JWT + roles), errorHandler, requireDB
+├── docs/ISC_MANIFEST.md       the isc.json specification
+└── docker-compose.yml         local MongoDB
 ```
 
-The client dev server proxies `/api/*` to the Express server (see `client/vite.config.js`), so the client only ever uses relative URLs.
+## API overview
 
-## Starting a new app from the template
-
-1. Copy the repo (or click *Use this template* on GitHub) and rename it.
-2. Change `APP_NAME` in `client/src/components/Layout.jsx` and `<title>` in `client/index.html`.
-3. Set `MONGODB_URI` in `server/.env` to a database name for the new app.
-4. Add your resources: for each entity, copy the `Item` trio (`models/Item.js`, `controllers/itemController.js`, `routes/items.js`), mount the router in `server/src/index.js`, and build the page from the `Items.jsx` pattern.
-5. Delete the demo (Items page + server files) when you no longer need the reference.
-
-## The visual identity
-
-All identity decisions live in **`client/src/styles/theme.css`** as CSS variables — change them once, the whole app follows. Visit **/style-guide** in the running app for a living reference.
-
-- **Ink & paper** — charcoal `#383838` on white, from the inline logos.
-- **Magenta** `#DD0069` — the wordmark accent; links and primary actions only.
-- **Facet palette** — the five pastel gradient facets of the mountain symbol (`sun`, `sky`, `mint`, `lavender`, `rose`); use for badges, chart series, and card accents.
-- **The ridge** — the facet gradient as a thin line across the top of every page and under section titles. This is the signature: keep it a line, never a background wash.
-- **Type** — Space Grotesk (display), Inter (body), JetBrains Mono (labels/statuses — a nod to the repo's ANSI logo). Self-hosted via Fontsource, no CDN needed.
+| Route | Access | Purpose |
+| --- | --- | --- |
+| `POST /api/auth/register` · `login` · `GET /me` | public / token | accounts (JWT) |
+| `GET /api/games` · `/:slug` · `/:slug/media/:id` | public | store catalog + images |
+| `GET /api/games/:slug/download` | any signed-in user | packaged zip (counts downloads) |
+| `POST /api/games` · `/:slug/rebuild` · `PATCH/DELETE /:slug` | student/admin | publishing |
+| `GET /api/admin/stats` · `users` · `games`, `PATCH users/:id` | admin | moderation |
 
 ## Scripts
 
@@ -71,4 +91,7 @@ All identity decisions live in **`client/src/styles/theme.css`** as CSS variable
 
 ## Attribution
 
-The ISC logos are © their authors, licensed [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) via [ISC-HEI/isc-logos](https://github.com/ISC-HEI/isc-logos). Keep the attribution (e.g. in the footer) in apps that use them, and note the non-commercial clause.
+The ISC logos are © their authors, licensed [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+via [ISC-HEI/isc-logos](https://github.com/ISC-HEI/isc-logos). Keep the attribution in the footer,
+and note the non-commercial clause. "Steam" is used here as a nickname for a class project —
+this is not affiliated with Valve.

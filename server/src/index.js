@@ -4,7 +4,9 @@ import morgan from 'morgan';
 import { connectDB, dbReady } from './config/db.js';
 import { requireDB } from './middleware/requireDB.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
-import itemsRouter from './routes/items.js';
+import authRouter from './routes/auth.js';
+import gamesRouter from './routes/games.js';
+import adminRouter from './routes/admin.js';
 
 const app = express();
 const port = process.env.PORT ?? 5174;
@@ -17,8 +19,9 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', db: dbReady() ? 'connected' : 'disconnected', time: new Date().toISOString() });
 });
 
-// Mount one router per resource here
-app.use('/api/items', requireDB, itemsRouter);
+app.use('/api/auth', requireDB, authRouter);
+app.use('/api/games', requireDB, gamesRouter);
+app.use('/api/admin', requireDB, adminRouter);
 
 app.use(notFound);
 app.use(errorHandler);
