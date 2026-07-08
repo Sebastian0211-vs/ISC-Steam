@@ -1,0 +1,239 @@
+/* App shell ----------------------------------------------------------------- */
+
+/* The ridge: a 4px gradient line across the very top of every page. */
+.ridge-topline {
+  height: 4px;
+  background: var(--isc-ridge);
+}
+
+.topbar {
+  border-bottom: 1px solid var(--isc-line);
+  background: var(--isc-paper);
+}
+
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--isc-ink-strong);
+  text-decoration: none;
+}
+
+.brand:hover { text-decoration: none; }
+
+.brand img { height: 34px; display: block; }
+
+.brand-app {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-md);
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--isc-line);
+}
+
+.nav {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.nav a {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--isc-ink);
+  padding: var(--space-1) 0;
+  border-bottom: 2px solid transparent;
+}
+
+.nav a:hover { color: var(--isc-magenta); text-decoration: none; }
+
+.nav a.active {
+  color: var(--isc-magenta);
+  border-bottom-color: var(--isc-magenta);
+}
+
+/* Theme toggle (sun / moon) */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--isc-line);
+  border-radius: var(--radius-sm);
+  color: var(--isc-muted);
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.theme-toggle:hover {
+  color: var(--isc-magenta);
+  border-color: var(--isc-magenta);
+}
+
+.theme-toggle svg { width: 1rem; height: 1rem; }
+
+/* Hero ----------------------------------------------------------------------
+   Dark charcoal panel: the "white logo on dark" lockup from the repo,
+   with a terminal-style status line as the living element. */
+
+.hero {
+  background: var(--isc-hero-bg);
+  color: #fff;
+  padding: var(--space-6) 0;
+}
+
+.hero h1 {
+  color: #fff;
+  max-width: 22ch;
+}
+
+.hero .accent { color: var(--isc-sky); }
+
+.hero p {
+  color: rgb(255 255 255 / 0.75);
+  max-width: 52ch;
+}
+
+.hero-logo { height: 56px; margin-bottom: var(--space-4); }
+
+.statusline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: rgb(255 255 255 / 0.85);
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid rgb(255 255 255 / 0.15);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.statusline .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--isc-muted);
+}
+
+.statusline .dot.ok { background: var(--isc-mint); }
+.statusline .dot.warn { background: var(--isc-sun); }
+.statusline .dot.err { background: var(--isc-rose); }
+
+/* Facet grid (home page cards) ---------------------------------------------- */
+
+.facet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--space-4);
+}
+
+.facet-card {
+  border-top: 3px solid var(--facet, var(--isc-sky));
+}
+
+/* Items demo ----------------------------------------------------------------- */
+
+.item-form {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.item-form .input { flex: 1; }
+
+.item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.item-row .title { flex: 1; }
+
+.item-row.done .title {
+  color: var(--isc-muted);
+  text-decoration: line-through;
+}
+
+.notice {
+  border-left: 3px solid var(--isc-sun);
+  background: var(--isc-paper-dim);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+}
+
+.notice.error { border-left-color: var(--isc-rose); }
+
+/* Style guide swatches -------------------------------------------------------- */
+
+.swatch-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--space-3);
+}
+
+.swatch {
+  border: 1px solid var(--isc-line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.swatch .chip { height: 4.5rem; }
+
+.swatch .meta {
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--isc-muted);
+}
+
+/* Footer ----------------------------------------------------------------------- */
+
+.footer {
+  margin-top: var(--space-6);
+  border-top: 1px solid var(--isc-line);
+  padding: var(--space-4) 0;
+  color: var(--isc-muted);
+  font-size: var(--text-sm);
+}
+
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.footer img { height: 22px; opacity: 0.85; }
+
+/* Responsive -------------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .topbar-inner { flex-wrap: wrap; }
+  .brand-app { border-left: none; padding-left: 0; }
+  .item-form { flex-direction: column; }
+}

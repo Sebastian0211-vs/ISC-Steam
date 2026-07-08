@@ -1,0 +1,202 @@
+/* Base + reusable UI classes. Component-specific rules stay in the component. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: 1.6;
+  color: var(--isc-ink);
+  background: var(--isc-paper);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  color: var(--isc-ink-strong);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--space-3);
+}
+
+h1 { font-size: var(--text-2xl); font-weight: 700; }
+h2 { font-size: var(--text-xl); font-weight: 600; }
+h3 { font-size: var(--text-lg); font-weight: 600; }
+
+p { margin: 0 0 var(--space-3); }
+
+a {
+  color: var(--isc-magenta);
+  text-decoration: none;
+}
+
+a:hover { color: var(--isc-magenta-ink); text-decoration: underline; }
+
+:focus-visible {
+  outline: 2px solid var(--isc-magenta);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background: var(--isc-sky);
+  color: var(--isc-on-facet);
+}
+
+code,
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+/* Layout ------------------------------------------------------------------ */
+
+.container {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+.section {
+  padding: var(--space-6) 0;
+}
+
+/* Section title with the ridge underline — the template's structural motif. */
+.section-title {
+  display: inline-block;
+  padding-bottom: var(--space-2);
+  position: relative;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 3.5rem;
+  height: 3px;
+  background: var(--isc-ridge);
+  border-radius: 2px;
+}
+
+/* Eyebrow: mono, uppercase, quiet — a nod to the ANSI logo. */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--isc-muted);
+  margin-bottom: var(--space-2);
+}
+
+/* Buttons ------------------------------------------------------------------ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: 0.6rem 1.1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.btn-primary {
+  background: var(--isc-magenta);
+  color: var(--isc-on-magenta);
+}
+
+.btn-primary:hover { background: var(--isc-magenta-ink); }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--isc-ink-strong);
+  border-color: var(--isc-ink);
+}
+
+.btn-secondary:hover { border-color: var(--isc-magenta); color: var(--isc-magenta); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--isc-muted);
+}
+
+.btn-ghost:hover { color: var(--isc-magenta); }
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Cards, badges, forms ------------------------------------------------------ */
+
+.card {
+  background: var(--isc-paper);
+  border: 1px solid var(--isc-line);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+}
+
+.badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  color: var(--isc-on-facet);
+}
+
+.badge-sun { background: var(--isc-sun); }
+.badge-sky { background: var(--isc-sky); }
+.badge-mint { background: var(--isc-mint); }
+.badge-lavender { background: var(--isc-lavender); }
+.badge-rose { background: var(--isc-rose); }
+
+.input {
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  color: var(--isc-ink);
+  background: var(--isc-paper);
+  border: 1px solid var(--isc-line);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.75rem;
+  width: 100%;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--isc-magenta);
+}
+
+.label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+/* Motion ------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,98 @@
+/* ==========================================================================
+   ISC design tokens
+   Derived from ISC-HEI/isc-logos (CC BY-NC-SA 4.0):
+   - charcoal ink and pure white from the inline logos
+   - signature magenta from the "isc" wordmark dot
+   - five pastel facets from the gradient mountain symbol
+   Change these variables here and every app built on the template follows.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* Core */
+  --isc-ink: #383838;          /* logo charcoal — primary text */
+  --isc-ink-strong: #1f2023;   /* headings, dark surfaces */
+  --isc-paper: #ffffff;        /* logo white — page background */
+  --isc-paper-dim: #f6f6f4;    /* subtle panels */
+  --isc-line: #e3e3e0;         /* hairline borders */
+  --isc-muted: #6f6f6d;        /* secondary text */
+
+  --isc-magenta: #dd0069;      /* signature accent — links, primary actions */
+  --isc-magenta-ink: #b10056;  /* hover / active */
+
+  --isc-on-magenta: #ffffff;   /* text on magenta buttons */
+
+  /* Dark surface used by the hero in both themes */
+  --isc-hero-bg: var(--isc-ink-strong);
+  /* Text placed on pastel facets (badges, selection) — dark in both themes */
+  --isc-on-facet: #1f2023;
+
+  /* Pastel facets of the mountain symbol */
+  --isc-sun: #f7f19f;
+  --isc-sky: #8cc6e6;
+  --isc-mint: #98c7bf;
+  --isc-lavender: #a890c0;
+  --isc-rose: #e2abba;
+
+  /* The ridge: the faceted-mountain gradient, used as a thin structural line
+     (top of page, under section titles) — never as a background wash. */
+  --isc-ridge: linear-gradient(
+    90deg,
+    var(--isc-sun) 0%,
+    var(--isc-sky) 28%,
+    var(--isc-mint) 52%,
+    var(--isc-lavender) 76%,
+    var(--isc-rose) 100%
+  );
+
+  /* Type */
+  --font-display: 'Space Grotesk Variable', 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-2xl: clamp(2.2rem, 5vw, 3.4rem);
+
+  /* Rhythm */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.5rem;
+  --space-6: 4rem;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --content-width: 68rem;
+
+  --shadow-card: 0 1px 2px rgb(31 32 35 / 0.06), 0 4px 16px rgb(31 32 35 / 0.05);
+}
+
+/* Dark theme --------------------------------------------------------------
+   Activated by data-theme="dark" on <html>. Defaults follow the OS
+   preference (set by the pre-paint script in index.html); the navbar
+   toggle overrides it and persists the choice in localStorage. */
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --isc-ink: #d4d4d2;          /* primary text on dark */
+  --isc-ink-strong: #f4f4f2;   /* headings */
+  --isc-paper: #17181b;        /* page background */
+  --isc-paper-dim: #1f2023;    /* subtle panels */
+  --isc-line: #34353b;         /* hairline borders */
+  --isc-muted: #9c9c99;        /* secondary text */
+
+  --isc-magenta: #ff4f97;      /* brightened for contrast on dark */
+  --isc-magenta-ink: #ff7cb1;  /* hover / active */
+  --isc-on-magenta: #1f2023;   /* dark text reads better on bright pink */
+
+  --isc-hero-bg: #101114;      /* hero sits slightly below the page */
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.3);
+}
