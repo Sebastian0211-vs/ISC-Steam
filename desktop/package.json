@@ -10,7 +10,7 @@
     "dist": "electron-builder --win"
   },
   "iscsteam": {
-    "url": "https://iscsteam.example.com"
+    "url": "https://steamisc.triceratops.ch"
   },
   "devDependencies": {
     "electron": "^33.2.0",
