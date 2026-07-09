@@ -29,6 +29,26 @@ export default function Admin() {
     api.delete(`/admin/users/${u.id}`).then(refresh).catch((e) => setError(e.message));
   }
 
+  // store-wide announcement banner
+  const [announcement, setAnnouncement] = useState({ text: '', link: '', active: false });
+  const [announceSaved, setAnnounceSaved] = useState('');
+
+  useEffect(() => {
+    api.get('/announcement')
+      .then((d) => d.announcement && setAnnouncement({ text: d.announcement.text, link: d.announcement.link ?? '', active: true }))
+      .catch(() => {});
+  }, []);
+
+  async function saveAnnouncement(active) {
+    try {
+      await api.put('/admin/announcement', { ...announcement, active });
+      setAnnouncement((a) => ({ ...a, active }));
+      setAnnounceSaved(active ? 'Announcement is live' : 'Announcement hidden');
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+
   return (
     <section className="section">
       <div className="container">
@@ -47,6 +67,31 @@ export default function Admin() {
             ))}
           </div>
         )}
+
+        <h2>Announcement</h2>
+        <div className="announce-editor">
+          <input
+            value={announcement.text}
+            onChange={(e) => { setAnnouncement((a) => ({ ...a, text: e.target.value })); setAnnounceSaved(''); }}
+            placeholder="Store-wide banner text (e.g. 'Submissions close Friday!')"
+            maxLength={500}
+          />
+          <input
+            value={announcement.link}
+            onChange={(e) => { setAnnouncement((a) => ({ ...a, link: e.target.value })); setAnnounceSaved(''); }}
+            placeholder="Optional link (https://...)"
+            maxLength={500}
+          />
+          <span className="announce-actions">
+            <button type="button" className="btn btn-primary" onClick={() => saveAnnouncement(true)} disabled={!announcement.text.trim()}>
+              {announcement.active ? 'Update' : 'Publish'}
+            </button>
+            {announcement.active && (
+              <button type="button" className="btn btn-ghost" onClick={() => saveAnnouncement(false)}>Hide</button>
+            )}
+            {announceSaved && <small>{announceSaved}</small>}
+          </span>
+        </div>
 
         <h2>Games</h2>
         {games && (

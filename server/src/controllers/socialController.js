@@ -2,6 +2,9 @@ import User from '../models/User.js';
 import Friendship from '../models/Friendship.js';
 import Message from '../models/Message.js';
 import { statusOf, emitToUser } from '../services/presence.js';
+import { uploadFromBuffer, openDownload } from '../config/gridfs.js';
+
+const CHAT_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp']);
 
 function userCard(user) {
   return {
@@ -130,6 +133,47 @@ export async function sendMessage(req, res) {
   emitToUser(other, 'message', payload);
   emitToUser(req.user._id, 'message', payload); // sender's other tabs
   res.status(201).json({ message: payload });
+}
+
+/** POST /api/social/messages/:userId/image - send an image/GIF (multipart "image"). */
+export async function sendImage(req, res) {
+  const other = req.params.userId;
+  if (!(await assertFriends(req.user._id, other))) {
+    return res.status(403).json({ error: 'You can only chat with friends' });
+  }
+  const file = req.file;
+  if (!file) return res.status(400).json({ error: 'Image file required' });
+  if (!CHAT_IMAGE_TYPES.has(file.mimetype)) {
+    return res.status(400).json({ error: 'Image must be PNG, JPG, GIF or WebP' });
+  }
+
+  const imageFileId = await uploadFromBuffer(file.buffer, `chat-${req.user._id}-${Date.now()}`, file.mimetype);
+  const message = await Message.create({
+    from: req.user._id,
+    to: other,
+    text: String(req.body.text ?? '').trim().slice(0, 2000),
+    imageFileId,
+    imageType: file.mimetype,
+  });
+  const payload = message.toPublic();
+
+  emitToUser(other, 'message', payload);
+  emitToUser(req.user._id, 'message', payload);
+  res.status(201).json({ message: payload });
+}
+
+/** GET /api/social/media/:messageId - streams a chat image to its participants. */
+export async function getChatImage(req, res) {
+  const message = await Message.findById(req.params.messageId);
+  if (!message?.imageFileId) return res.status(404).json({ error: 'Not found' });
+  if (!message.from.equals(req.user._id) && !message.to.equals(req.user._id)) {
+    return res.status(403).json({ error: 'Not your conversation' });
+  }
+  res.set('Content-Type', message.imageType || 'image/png');
+  res.set('Cache-Control', 'private, max-age=86400');
+  openDownload(message.imageFileId)
+    .on('error', () => res.status(404).end())
+    .pipe(res);
 }
 
 /** POST /api/social/messages/:userId/read - mark everything from them as read. */

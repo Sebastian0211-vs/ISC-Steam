@@ -6,14 +6,16 @@ import Friendship from '../models/Friendship.js';
 
 const SECRET = process.env.JWT_SECRET ?? 'dev-only-secret-change-me';
 
-// userId -> { sockets: Set<Socket>, game: {slug,title} | null }
+// userId -> { sockets: Set<Socket>, game: {slug,title} | null, mode: 'online'|'idle'|'invisible' }
 const online = new Map();
 let io = null;
 
 export function statusOf(userId) {
   const entry = online.get(String(userId));
-  if (!entry) return { state: 'offline', game: null };
-  return entry.game ? { state: 'ingame', game: entry.game } : { state: 'online', game: null };
+  if (!entry || entry.mode === 'invisible') return { state: 'offline', game: null };
+  if (entry.game) return { state: 'ingame', game: entry.game };
+  if (entry.mode === 'idle') return { state: 'idle', game: null };
+  return { state: 'online', game: null };
 }
 
 export async function friendIdsOf(userId) {
@@ -60,13 +62,13 @@ export function initPresence(httpServer, corsOrigin) {
     const cameOnline = !entry;
 
     if (!entry) {
-      entry = { sockets: new Set(), game: null };
+      entry = { sockets: new Set(), game: null, mode: 'online' };
       online.set(id, entry);
     }
     entry.sockets.add(socket);
     if (cameOnline) void broadcastPresence(id).catch(() => {});
 
-    // Desktop launcher reports what the user is playing: { game: {slug,title} | null }
+    // Clients report presence: { game: {slug,title} | null, mode: 'online'|'idle'|'invisible' }
     socket.on('status', (data) => {
       const game =
         data?.game && typeof data.game.slug === 'string'
@@ -76,6 +78,7 @@ export function initPresence(httpServer, corsOrigin) {
             }
           : null;
       entry.game = game;
+      if (['online', 'idle', 'invisible'].includes(data?.mode)) entry.mode = data.mode;
       void broadcastPresence(id).catch(() => {});
     });
 

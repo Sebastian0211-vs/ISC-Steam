@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('iscSteam', {
   install: (game, token) => ipcRenderer.invoke('isc:install', game, token),
   uninstall: (slug) => ipcRenderer.invoke('isc:uninstall', slug),
   play: (slug) => ipcRenderer.invoke('isc:play', slug),
+  openFolder: (slug) => ipcRenderer.invoke('isc:openFolder', slug),
 
   /** cb receives { type: 'started'|'exited', slug, title, seconds? }. Returns unsubscribe. */
   onGameEvent: (cb) => {

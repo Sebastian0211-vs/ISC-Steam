@@ -1,9 +1,10 @@
-import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, Link } from 'react-router-dom';
 import logoBlack from '../assets/logo/isc-inline-black.svg';
 import logoWhite from '../assets/logo/isc-inline-white.svg';
 import useTheme from '../hooks/useTheme.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import SocialDock from './SocialDock.jsx';
+import { UserMenu, PatchNotesBell, AnnouncementBanner } from './TopbarWidgets.jsx';
 
 const APP_NAME = 'Steam';
 
@@ -26,18 +27,13 @@ function MoonIcon() {
 
 export default function Layout() {
   const { theme, toggleTheme } = useTheme();
-  const { user, isStudent, isAdmin, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user, isStudent, isAdmin } = useAuth();
   const logo = theme === 'dark' ? logoWhite : logoBlack;
-
-  function onLogout() {
-    logout();
-    navigate('/');
-  }
 
   return (
     <>
       <div className="ridge-topline" aria-hidden="true" />
+      <AnnouncementBanner />
       <header className="topbar">
         <div className="container topbar-inner">
           <Link to="/" className="brand">
@@ -47,14 +43,9 @@ export default function Layout() {
           <nav className="nav" aria-label="Main">
             <NavLink to="/" end>Store</NavLink>
             {user && <NavLink to="/library">Library</NavLink>}
-            {user && <NavLink to={`/user/${user.username}`}>Profile</NavLink>}
             {isStudent && <NavLink to="/dashboard">My games</NavLink>}
             {isAdmin && <NavLink to="/admin">Admin</NavLink>}
-            {user ? (
-              <button type="button" className="btn btn-ghost" onClick={onLogout} title={`Signed in as ${user.displayName}`}>
-                Sign out
-              </button>
-            ) : (
+            {!user && (
               <>
                 <NavLink to="/login">Sign in</NavLink>
                 <NavLink to="/register" className="btn btn-primary" style={{ color: 'var(--isc-on-magenta)' }}>
@@ -71,6 +62,8 @@ export default function Layout() {
             >
               {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
             </button>
+            <PatchNotesBell />
+            <UserMenu />
           </nav>
         </div>
       </header>

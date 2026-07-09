@@ -1,25 +1,39 @@
 // Bottom-right friends & chat dock, Steam-style.
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { getToken } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useSocial } from '../context/SocialContext.jsx';
-
-function StatusDot({ status }) {
-  const state = status?.state ?? 'offline';
-  const label =
-    state === 'ingame' ? `Playing ${status.game?.title ?? 'a game'}` : state === 'online' ? 'Online' : 'Offline';
-  return <span className={`presence-dot ${state}`} title={label} />;
-}
 
 function statusText(status) {
   if (status?.state === 'ingame') return `Playing ${status.game?.title ?? '…'}`;
   if (status?.state === 'online') return 'Online';
+  if (status?.state === 'idle') return 'Away';
   return 'Offline';
+}
+
+function StatusDot({ status }) {
+  const state = status?.state ?? 'offline';
+  return <span className={`presence-dot ${state}`} title={statusText(status)} />;
+}
+
+// direct links to .gif/.png/... render as images (easy GIF sending)
+const IMG_URL_RE = /^https?:\/\/\S+\.(png|jpe?g|gif|webp)(\?\S*)?$/i;
+
+function MessageBody({ m }) {
+  if (m.imageUrl) {
+    const token = getToken();
+    return <img className="chat-image" src={`${m.imageUrl}?token=${encodeURIComponent(token ?? '')}`} alt="" loading="lazy" />;
+  }
+  if (IMG_URL_RE.test(m.text ?? '')) {
+    return <img className="chat-image" src={m.text} alt="" loading="lazy" />;
+  }
+  return <span>{m.text}</span>;
 }
 
 function ChatView({ friend, onBack }) {
   const { user } = useAuth();
-  const { chats, sendMessage } = useSocial();
+  const { chats, sendMessage, sendImage } = useSocial();
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
   const listRef = useRef(null);
@@ -56,12 +70,31 @@ function ChatView({ friend, onBack }) {
         {messages.length === 0 && <p className="social-empty">Say hi to {friend.displayName}!</p>}
         {messages.map((m) => (
           <div key={m.id} className={`chat-msg${m.from === String(user.id) ? ' own' : ''}`}>
-            <span>{m.text}</span>
+            <MessageBody m={m} />
           </div>
         ))}
       </div>
       {error && <p className="social-error">{error}</p>}
       <form className="social-input-row" onSubmit={submit}>
+        <label className="chat-attach" title="Send an image or GIF">
+          🖼
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/gif,image/webp"
+            hidden
+            onChange={async (e) => {
+              const file = e.target.files[0];
+              e.target.value = '';
+              if (!file) return;
+              try {
+                await sendImage(friend.id, file);
+                setError('');
+              } catch (err) {
+                setError(err.message);
+              }
+            }}
+          />
+        </label>
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}

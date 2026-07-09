@@ -15,6 +15,7 @@ ipcMain.handle('isc:installed', () => games.listInstalled());
 ipcMain.handle('isc:install', (e, game, token) => games.install(APP_URL, game, token));
 ipcMain.handle('isc:uninstall', (e, slug) => games.uninstall(slug));
 ipcMain.handle('isc:play', (e, slug) => games.play(APP_URL, slug));
+ipcMain.handle('isc:openFolder', (e, slug) => games.openFolder(slug));
 
 function createWindow() {
   const win = new BrowserWindow({

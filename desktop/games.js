@@ -1,5 +1,5 @@
 // Main-process game manager: install folder, download+unzip, launch, sessions.
-const { app, dialog, BrowserWindow } = require('electron');
+const { app, dialog, shell, BrowserWindow } = require('electron');
 const { spawn } = require('node:child_process');
 const path = require('node:path');
 const fs = require('node:fs');
@@ -171,7 +171,13 @@ async function play(appUrl, slug) {
     await fsp.chmod(path.join(dir, 'runtime', 'lib', 'jspawnhelper'), 0o755).catch(() => {});
     child = spawn('/bin/sh', [launcherPath], { cwd: dir });
   } else if (lower.endsWith('.bat')) {
-    child = spawn('cmd.exe', ['/c', launcherPath], { cwd: dir, windowsHide: false });
+    // Node passes cmd.exe args verbatim (unquoted), so paths with spaces break
+    // unless we quote explicitly. /d /s /c is the canonical safe invocation.
+    child = spawn('cmd.exe', ['/d', '/s', '/c', `"${launcherPath}"`], {
+      cwd: dir,
+      windowsHide: false,
+      windowsVerbatimArguments: true,
+    });
   } else {
     child = spawn(launcherPath, [], { cwd: dir, windowsHide: false });
   }
@@ -182,12 +188,34 @@ async function play(appUrl, slug) {
   broadcast({ type: 'started', slug, title: session.title });
   discord.setPlaying(session.title, bannerUrl);
 
-  const finish = () => {
+  // capture game output: full log to <game>/launch.log, tail for error dialogs
+  const logFile = path.join(dir, 'launch.log');
+  const logStream = fs.createWriteStream(logFile);
+  let tail = '';
+  const capture = (buf) => {
+    tail = (tail + buf.toString()).slice(-1500);
+  };
+  child.stdout?.on('data', capture);
+  child.stderr?.on('data', capture);
+  child.stdout?.pipe(logStream);
+  child.stderr?.pipe(logStream, { end: false });
+
+  const finish = (codeOrErr) => {
     if (!running.has(slug)) return;
     running.delete(slug);
     const seconds = Math.round((Date.now() - session.startedAt) / 1000);
     broadcast({ type: 'exited', slug, title: session.title, seconds });
     discord.clear();
+
+    if (codeOrErr instanceof Error) {
+      dialog.showErrorBox(`Could not launch ${session.title}`, codeOrErr.message);
+    } else if (codeOrErr && seconds < 15) {
+      // crashed right after starting: surface what the game printed
+      dialog.showErrorBox(
+        `${session.title} failed to start (exit code ${codeOrErr})`,
+        `${tail.trim() || 'No output captured.'}\n\nFull log: ${logFile}`,
+      );
+    }
   };
 
   child.on('exit', finish);
@@ -196,4 +224,11 @@ async function play(appUrl, slug) {
   return { ok: true };
 }
 
-module.exports = { getInstallDir, chooseInstallDir, listInstalled, install, uninstall, play };
+async function openFolder(slug) {
+  const dir = gameDir(slug);
+  const result = await shell.openPath(dir);
+  if (result) throw new Error(result); // openPath returns an error string on failure
+  return { ok: true };
+}
+
+module.exports = { getInstallDir, chooseInstallDir, listInstalled, install, uninstall, play, openFolder };

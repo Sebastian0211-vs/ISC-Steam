@@ -143,6 +143,9 @@ export default function Library() {
                               {busy === game.slug ? 'Updating…' : 'Update'}
                             </button>
                           )}
+                          <button type="button" className="btn btn-ghost" onClick={() => bridge.openFolder(game.slug)}>
+                            Open folder
+                          </button>
                           <button type="button" className="btn btn-ghost" onClick={() => uninstall(game.slug)} disabled={isPlaying}>
                             Uninstall
                           </button>

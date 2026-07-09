@@ -4,7 +4,9 @@ const messageSchema = new mongoose.Schema(
   {
     from: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     to: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    text: { type: String, required: true, trim: true, maxlength: 2000 },
+    text: { type: String, trim: true, maxlength: 2000, default: '' },
+    imageFileId: { type: mongoose.Schema.Types.ObjectId, default: null }, // GridFS
+    imageType: { type: String, default: '' },
     readAt: { type: Date, default: null },
   },
   { timestamps: true },
@@ -19,6 +21,7 @@ messageSchema.methods.toPublic = function toPublic() {
     from: this.from.toString(),
     to: this.to.toString(),
     text: this.text,
+    imageUrl: this.imageFileId ? `/api/social/media/${this._id}` : null,
     readAt: this.readAt,
     createdAt: this.createdAt,
   };

@@ -18,6 +18,33 @@ export function SocialProvider({ children }) {
   const [activeChat, setActiveChat] = useState(null); // userId | null
   const [playing, setPlaying] = useState(null); // {slug,title} | null
   const [dockOpen, setDockOpen] = useState(false);
+  const [idle, setIdle] = useState(false);
+  const [appearOffline, setAppearOfflineState] = useState(
+    () => localStorage.getItem('appearOffline') === '1',
+  );
+
+  const setAppearOffline = useCallback((value) => {
+    setAppearOfflineState(value);
+    localStorage.setItem('appearOffline', value ? '1' : '0');
+  }, []);
+
+  // AFK detection: no interaction for 5 minutes -> idle
+  useEffect(() => {
+    if (!user) return undefined;
+    let timer;
+    const reset = () => {
+      setIdle(false);
+      clearTimeout(timer);
+      timer = setTimeout(() => setIdle(true), 5 * 60 * 1000);
+    };
+    const events = ['mousemove', 'keydown', 'pointerdown', 'scroll'];
+    for (const ev of events) window.addEventListener(ev, reset, { passive: true });
+    reset();
+    return () => {
+      clearTimeout(timer);
+      for (const ev of events) window.removeEventListener(ev, reset);
+    };
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeChatRef = useRef(null);
   activeChatRef.current = activeChat;
@@ -93,10 +120,14 @@ export function SocialProvider({ children }) {
     });
   }, []);
 
-  // tell friends what we're playing
+  // tell friends what we're playing and whether we're online / idle / invisible
   useEffect(() => {
-    if (socket) socket.emit('status', { game: playing });
-  }, [socket, playing]);
+    if (!socket) return;
+    socket.emit('status', {
+      game: playing,
+      mode: appearOffline ? 'invisible' : idle ? 'idle' : 'online',
+    });
+  }, [socket, playing, idle, appearOffline]);
 
   const addFriend = useCallback(async (username) => {
     await api.post('/social/friends', { username });
@@ -132,6 +163,12 @@ export function SocialProvider({ children }) {
     // the server echoes the message back over the socket; no local append needed
   }, []);
 
+  const sendImage = useCallback(async (userId, file) => {
+    const form = new FormData();
+    form.append('image', file);
+    await api.postForm(`/social/messages/${userId}/image`, form);
+  }, []);
+
   const totalUnread = Object.values(unread).reduce((a, b) => a + b, 0);
   const onlineCount = friends.filter((f) => f.status?.state !== 'offline').length;
 
@@ -139,9 +176,10 @@ export function SocialProvider({ children }) {
     <SocialContext.Provider
       value={{
         friends, incoming, outgoing, unread, totalUnread, onlineCount,
-        chats, activeChat, setActiveChat, openChat, sendMessage,
+        chats, activeChat, setActiveChat, openChat, sendMessage, sendImage,
         addFriend, acceptFriend, removeFriend,
         playing, dockOpen, setDockOpen,
+        idle, appearOffline, setAppearOffline,
       }}
     >
       {children}

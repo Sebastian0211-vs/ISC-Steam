@@ -39,7 +39,10 @@ export function SidebarSection({ title, children }) {
 export function FriendCard({ friend, onClick }) {
   const state = friend.status?.state ?? 'offline';
   const label =
-    state === 'ingame' ? `Playing ${friend.status.game?.title ?? '...'}` : state === 'online' ? 'Online' : 'Offline';
+    state === 'ingame' ? `Playing ${friend.status.game?.title ?? '...'}`
+    : state === 'online' ? 'Online'
+    : state === 'idle' ? 'Away'
+    : 'Offline';
   const body = (
     <>
       <Avatar user={friend} size={32} />

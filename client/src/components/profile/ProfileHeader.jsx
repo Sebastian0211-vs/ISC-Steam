@@ -5,7 +5,10 @@ export default function ProfileHeader({ profile, onAddFriend, onMessage, onEdit,
   const { user, friendState, isOwn } = profile;
   const state = user.status?.state ?? 'offline';
   const statusText =
-    state === 'ingame' ? `Playing ${user.status.game?.title ?? '...'}` : state === 'online' ? 'Online' : 'Offline';
+    state === 'ingame' ? `Playing ${user.status.game?.title ?? '...'}`
+    : state === 'online' ? 'Online'
+    : state === 'idle' ? 'Away'
+    : 'Offline';
 
   return (
     <div
