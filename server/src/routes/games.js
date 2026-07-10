@@ -6,12 +6,13 @@ import {
 } from '../controllers/gameController.js';
 import { optionalAuth, requireAuth, requireRole } from '../middleware/auth.js';
 import { listReviews, upsertReview, deleteReview } from '../controllers/reviewController.js';
+import { UPLOAD_LIMITS } from '../config/uploadLimits.js';
 
 const router = Router();
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 200 * 1024 * 1024,
+    fileSize: UPLOAD_LIMITS.gamePackage,
     files: 8,
   },
 });

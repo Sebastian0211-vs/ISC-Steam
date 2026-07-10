@@ -3,7 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import path from 'node:path';
 import { createServer } from 'node:http';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { connectDB, dbReady } from './config/db.js';
 import { requireDB } from './middleware/requireDB.js';
@@ -20,12 +20,16 @@ import { getAnnouncement, listReleases } from './controllers/announcementControl
 const app = express();
 const port = process.env.PORT ?? 5174;
 
+// server version, read from server/package.json at startup
+const pkgPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../package.json');
+const version = JSON.parse(readFileSync(pkgPath, 'utf8')).version;
+
 app.use(cors({ origin: process.env.CLIENT_ORIGIN ?? 'http://localhost:5173' }));
 app.use(express.json());
 app.use(morgan('dev'));
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', db: dbReady() ? 'connected' : 'disconnected', time: new Date().toISOString() });
+  res.json({ status: 'ok', version, db: dbReady() ? 'connected' : 'disconnected', time: new Date().toISOString() });
 });
 
 app.use('/api/auth', requireDB, authRouter);

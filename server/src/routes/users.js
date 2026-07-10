@@ -6,9 +6,10 @@ import {
   updateProfile, uploadAvatar, uploadBanner, getAvatar, getBanner,
   listComments, addComment, deleteComment, likeComment,
 } from '../controllers/userController.js';
+import { UPLOAD_LIMITS } from '../config/uploadLimits.js';
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: UPLOAD_LIMITS.image } });
 
 // specific routes must come before /:username
 router.get('/resolve', resolveNames);

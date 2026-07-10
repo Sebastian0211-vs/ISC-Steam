@@ -5,9 +5,10 @@ import {
   listFriends, addFriend, acceptFriend, removeFriend,
   listMessages, sendMessage, sendImage, getChatImage, markRead,
 } from '../controllers/socialController.js';
+import { UPLOAD_LIMITS } from '../config/uploadLimits.js';
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: UPLOAD_LIMITS.image } });
 
 router.use(requireAuth);
 
