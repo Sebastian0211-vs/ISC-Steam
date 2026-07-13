@@ -5,7 +5,7 @@ import LibraryEntry from '../models/LibraryEntry.js';
 import Friendship from '../models/Friendship.js';
 import ProfileComment from '../models/ProfileComment.js';
 import { statusOf, friendIdsOf } from '../services/presence.js';
-import { uploadFromBuffer, openDownload, deleteFile } from '../config/gridfs.js';
+import { uploadFromBuffer, openDownload, fileInfo, deleteFile } from '../config/gridfs.js';
 
 const IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp']);
 
@@ -250,7 +250,12 @@ function makeImageStreamer(field) {
     try {
       const user = await findByUsername(req.params.username);
       if (!user || !user[field]) return res.status(404).json({ error: 'Not found' });
+      const info = await fileInfo(user[field]);
+      if (!info) return res.status(404).json({ error: 'Not found' });
+      if (info.contentType) res.type(info.contentType);
+      if (info.length != null) res.set('Content-Length', String(info.length));
       res.set('Cache-Control', 'public, max-age=86400');
+      res.set('X-Content-Type-Options', 'nosniff');
       openDownload(user[field])
         .on('error', () => res.status(404).end())
         .pipe(res);

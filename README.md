@@ -56,6 +56,7 @@ Important variables:
 | `PORT` | API port, defaults to `5174`. |
 | `MONGODB_URI` | MongoDB connection string. |
 | `CLIENT_ORIGIN` | Allowed browser origin for CORS and Socket.IO. |
+| `PUBLIC_ORIGIN` | Optional public base URL for absolute social-preview links; defaults to `CLIENT_ORIGIN`. |
 | `JWT_SECRET` | Secret used to sign account tokens. Change this. |
 | `PUBLISHER_CODE` | Registration code that grants the student/publisher role. |
 | `SCALA_LIBRARY_JAR` | Optional explicit path to `scala-library.jar`. |
