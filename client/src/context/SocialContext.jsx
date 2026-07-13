@@ -49,6 +49,35 @@ export function SocialProvider({ children }) {
 
   const activeChatRef = useRef(null);
   activeChatRef.current = activeChat;
+  const friendsRef = useRef([]);
+  friendsRef.current = friends;
+
+  // native (Windows/macOS) notifications for incoming messages
+  useEffect(() => {
+    if (!user || typeof Notification === 'undefined') return;
+    if (Notification.permission === 'default') Notification.requestPermission().catch(() => {});
+  }, [user?.id]);
+
+  const notifyMessage = useCallback((m) => {
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    const sender = friendsRef.current.find((f) => f.id === m.from);
+    const title = sender?.displayName ?? 'New message';
+    const body = m.text || (m.imageUrl ? '📷 Sent an image' : 'New message');
+    try {
+      const n = new Notification(title, {
+        body,
+        icon: sender?.avatarUrl ?? '/favicon.svg',
+        tag: `msg-${m.from}`, // collapse repeated notifications from the same sender
+      });
+      n.onclick = () => {
+        window.focus();
+        openChat(m.from); // safe: assigned before any notification can fire
+        setDockOpen(true);
+      };
+    } catch {
+      /* Notification constructor can throw on some platforms */
+    }
+  }, []);
 
   const refresh = useCallback(() => {
     if (!getToken()) return;
@@ -99,6 +128,8 @@ export function SocialProvider({ children }) {
         } else {
           setUnread((u) => ({ ...u, [m.from]: (u[m.from] ?? 0) + 1 }));
         }
+        // notify unless the chat is open and the window is focused
+        if (activeChatRef.current !== other || !document.hasFocus()) notifyMessage(m);
       }
     });
 

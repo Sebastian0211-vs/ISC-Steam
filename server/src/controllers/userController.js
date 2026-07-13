@@ -81,6 +81,7 @@ export async function getProfile(req, res, next) {
         ...userCard(user),
         bio: user.bio,
         bannerUrl: user.bannerUrl(),
+        backgroundUrl: user.backgroundUrl(),
         role: user.role,
         memberSince: user.createdAt,
         status: statusOf(user._id),
@@ -242,6 +243,7 @@ function makeImageUploader(field) {
 
 export const uploadAvatar = makeImageUploader('avatarFileId');
 export const uploadBanner = makeImageUploader('bannerFileId');
+export const uploadBackground = makeImageUploader('backgroundFileId');
 
 function makeImageStreamer(field) {
   return async function streamImage(req, res, next) {
@@ -260,6 +262,7 @@ function makeImageStreamer(field) {
 
 export const getAvatar = makeImageStreamer('avatarFileId');
 export const getBanner = makeImageStreamer('bannerFileId');
+export const getBackground = makeImageStreamer('backgroundFileId');
 
 /* --------------------------------------------------------------- comments -- */
 

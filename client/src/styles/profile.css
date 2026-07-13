@@ -2,15 +2,31 @@
 
 /* ---- hero ---- */
 .profile-hero {
+  position: relative;
   background: var(--isc-hero-bg, var(--isc-paper-dim));
+}
+/* Banner lives on its own layer so it can be alpha-masked: the bottom fades
+   out to reveal the page background, which makes the transition smooth in
+   both light and dark mode (no hard-coded fade color). */
+.profile-hero.has-banner { background: transparent; }
+.profile-hero-bg {
+  position: absolute;
+  inset: 0;
   background-size: cover;
   background-position: center;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
 }
-.profile-hero-scrim { background: transparent; }
-.profile-hero.has-banner .profile-hero-scrim {
+/* readability scrim, masked together with the image */
+.profile-hero-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   background: linear-gradient(to bottom, rgba(10, 12, 16, 0.35), rgba(10, 12, 16, 0.75));
-  color: #fff;
 }
+.profile-hero-scrim { position: relative; background: transparent; }
+.profile-hero.has-banner .profile-hero-scrim { color: #fff; }
 .profile-hero.has-banner .profile-tag,
 .profile-hero.has-banner .profile-member-since,
 .profile-hero.has-banner .profile-status { color: rgba(255, 255, 255, 0.8); }
@@ -93,6 +109,21 @@
 .stat-icon { font-size: var(--text-lg); }
 .stat-value { font-size: var(--text-xl); font-family: var(--font-display); }
 .stat-label { font-size: var(--text-xs); color: var(--isc-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* ---- page background (Steam-style, starts after the stats row) ---- */
+.profile-body { position: relative; }
+.profile-body > .container { position: relative; }
+.profile-page-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center top;
+  pointer-events: none;
+  /* alpha mask: fades in below the stats and out again at the bottom, so it
+     blends into the page background in both light and dark mode */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 160px, #000 calc(100% - 240px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 160px, #000 calc(100% - 240px), transparent 100%);
+}
 
 /* ---- layout ---- */
 .profile-columns {
@@ -248,6 +279,7 @@
 }
 .activity-body time { font-size: var(--text-xs); color: var(--isc-muted); }
 .activity-media { width: 100px; aspect-ratio: 16/9; object-fit: cover; border-radius: var(--radius-sm); }
+.activity-toggle { margin-top: var(--space-2); width: 100%; }
 
 /* ---- comments ---- */
 .profile-comments {

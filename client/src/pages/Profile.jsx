@@ -85,6 +85,10 @@ function EditPanel({ profile, onClose, onSaved }) {
           Banner
           <input type="file" accept="image/*" onChange={(e) => uploadImage('banner', e.target.files[0])} />
         </label>
+        <label>
+          Background
+          <input type="file" accept="image/*" onChange={(e) => uploadImage('background', e.target.files[0])} />
+        </label>
       </div>
 
       <label className="profile-edit-bio">
@@ -157,6 +161,7 @@ export default function Profile() {
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [showAllActivity, setShowAllActivity] = useState(false);
 
   const load = useCallback(() => {
     api.get(`/users/${username}`).then(setProfile).catch((err) => setError(err.message));
@@ -166,6 +171,7 @@ export default function Profile() {
   useEffect(() => {
     setEditing(false);
     setFeedback('');
+    setShowAllActivity(false);
     load();
   }, [load]);
 
@@ -195,6 +201,9 @@ export default function Profile() {
     ? profile.showcases
     : [{ type: 'games-made' }, { type: 'recent-games' }];
 
+  const backgroundUrl = profile.user.backgroundUrl;
+  const visibleActivity = showAllActivity ? activity : activity.slice(0, 5);
+
   return (
     <>
       <ProfileHeader
@@ -216,7 +225,17 @@ export default function Profile() {
             <StatCard icon="👥" value={profile.stats.friends} label="Friends" />
             <StatCard icon="★" value={profile.stats.reviews} label="Reviews" />
           </div>
+        </div>
 
+        <div className="profile-body">
+          {backgroundUrl && (
+            <div
+              className="profile-page-bg"
+              style={{ backgroundImage: `url(${backgroundUrl})` }}
+              aria-hidden="true"
+            />
+          )}
+          <div className="container">
           <div className="profile-columns">
             <div className="profile-main">
               {showcases.map((s, i) => (
@@ -227,8 +246,17 @@ export default function Profile() {
                 <h2>Activity feed</h2>
                 {activity.length === 0 && <p className="social-empty">Nothing yet.</p>}
                 <div className="activity-list">
-                  {activity.map((item, i) => <ActivityCard key={i} item={item} />)}
+                  {visibleActivity.map((item, i) => <ActivityCard key={i} item={item} />)}
                 </div>
+                {activity.length > 5 && (
+                  <button
+                    type="button"
+                    className="btn btn-ghost activity-toggle"
+                    onClick={() => setShowAllActivity((v) => !v)}
+                  >
+                    {showAllActivity ? '− Show less' : `+ Show all activity (${activity.length})`}
+                  </button>
+                )}
               </section>
 
               <Comments username={username} canModerate={isAdmin || profile.isOwn} />
@@ -262,6 +290,7 @@ export default function Profile() {
                 </SidebarSection>
               )}
             </aside>
+          </div>
           </div>
         </div>
       </section>

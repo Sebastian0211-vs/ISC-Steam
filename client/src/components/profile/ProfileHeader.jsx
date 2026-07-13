@@ -11,10 +11,14 @@ export default function ProfileHeader({ profile, onAddFriend, onMessage, onEdit,
     : 'Offline';
 
   return (
-    <div
-      className={`profile-hero${user.bannerUrl ? ' has-banner' : ''}`}
-      style={user.bannerUrl ? { backgroundImage: `url(${user.bannerUrl})` } : undefined}
-    >
+    <div className={`profile-hero${user.bannerUrl ? ' has-banner' : ''}`}>
+      {user.bannerUrl && (
+        <div
+          className="profile-hero-bg"
+          style={{ backgroundImage: `url(${user.bannerUrl})` }}
+          aria-hidden="true"
+        />
+      )}
       <div className="profile-hero-scrim">
         <div className="container profile-hero-inner">
           <div className="profile-avatar-wrap">

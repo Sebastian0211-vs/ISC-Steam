@@ -60,6 +60,10 @@ function createWindow() {
   return win;
 }
 
+// Windows toast notifications (used by the web app for chat messages) need a
+// stable AppUserModelID matching the installer's appId.
+app.setAppUserModelId('ch.hevs.isc.steam');
+
 app.whenReady().then(() => {
   const win = createWindow();
 

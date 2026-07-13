@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema(
     bio: { type: String, trim: true, maxlength: 500, default: '' },
     avatarFileId: { type: mongoose.Schema.Types.ObjectId, default: null }, // GridFS
     bannerFileId: { type: mongoose.Schema.Types.ObjectId, default: null }, // GridFS
+    backgroundFileId: { type: mongoose.Schema.Types.ObjectId, default: null }, // GridFS
     showcases: { type: [showcaseSchema], default: [] },
   },
   { timestamps: true },
@@ -47,6 +48,10 @@ userSchema.methods.bannerUrl = function bannerUrl() {
   return this.bannerFileId ? `/api/users/${this.username}/banner?v=${this.updatedAt?.getTime() ?? 0}` : null;
 };
 
+userSchema.methods.backgroundUrl = function backgroundUrl() {
+  return this.backgroundFileId ? `/api/users/${this.username}/background?v=${this.updatedAt?.getTime() ?? 0}` : null;
+};
+
 userSchema.methods.toPublic = function toPublic() {
   return {
     id: this._id,
@@ -57,6 +62,7 @@ userSchema.methods.toPublic = function toPublic() {
     bio: this.bio,
     avatarUrl: this.avatarUrl(),
     bannerUrl: this.bannerUrl(),
+    backgroundUrl: this.backgroundUrl(),
     createdAt: this.createdAt,
   };
 };
