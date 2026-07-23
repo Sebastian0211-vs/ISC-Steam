@@ -12,10 +12,10 @@ If `isc.json` is missing, ISC Steam falls back to minimal metadata from `README*
 ```json
 {
   "iscVersion": 1,
-  "title": "ISCtaker",
-  "shortDescription": "A Scala port of Helltaker - push, dodge and puzzle your way to your demon companion.",
+  "title": "Grid Quest",
+  "shortDescription": "Navigate compact puzzle rooms, collect keys, and reach the exit.",
   "mainClass": "Main",
-  "cover": "src/res/Banner.png"
+  "cover": "src/res/banner.png"
 }
 ```
 
@@ -24,21 +24,21 @@ If `isc.json` is missing, ISC Steam falls back to minimal metadata from `README*
 ```json
 {
   "iscVersion": 1,
-  "title": "ISCtaker",
-  "shortDescription": "A Scala port of Helltaker - grid puzzles, quirky demons, original music.",
-  "description": "ISCtaker challenges players to navigate puzzle-like levels filled with moving obstacles, locked doors, and quirky demons. Push skeletons, collect keys, and reach your demon companion.\n\nMade for the ISC 1st-year course at HES-SO Valais.",
+  "title": "Grid Quest",
+  "shortDescription": "Navigate compact puzzle rooms, collect keys, and reach the exit.",
+  "description": "Grid Quest challenges players to solve compact rooms filled with obstacles, locked doors, and moving hazards.\n\nMade for the ISC 1st-year course at HES-SO Valais.",
   "version": "1.0.0",
-  "authors": ["Louis Schanen", "Sebastian Morsch"],
+  "authors": ["Alex Martin", "Camille Rey"],
   "tags": ["puzzle", "2d", "keyboard"],
-  "cover": "src/res/Banner.png",
-  "screenshots": ["src/res/screenshot1.png", "src/res/screenshot level4.png"],
+  "cover": "src/res/banner.png",
+  "screenshots": ["src/res/screenshot1.png", "src/res/screenshot2.png"],
   "engine": { "name": "fungraphics", "version": "1.5.15" },
   "scalaVersion": "2.13",
   "mainClass": "Main",
   "sources": ["src"],
   "resources": ["src/res"],
-  "controls": "Arrow keys to move · R reset · L hint · Esc close",
-  "year": 2025
+  "controls": "Arrow keys to move · R reset · H hint",
+  "year": 2026
 }
 ```
 
@@ -63,6 +63,7 @@ If `isc.json` is missing, ISC Steam falls back to minimal metadata from `README*
 | `javafxModules` | no | `["controls", "media"]` | JavaFX modules to bundle: `controls`, `media`, `swing`, `fxml`, `web` (`base` and `graphics` are always included). |
 | `sources` | no | `["src"]` | Directories containing `.scala` sources. |
 | `resources` | no | sources | Directories whose non-source files are bundled into the jar (sprites, audio, levels). Paths are kept **relative to the source root**, so `src/res/x.png` is loaded in-game as `/res/x.png`. |
+| `browser` | no | - | Optimized `game.js` target for the experimental browser player. |
 | `controls` | no | - | Short line describing keyboard controls, shown on the store page. |
 | `year` | no | current | Cohort/class year. |
 
@@ -88,6 +89,35 @@ Scala version fallback order: `build.sbt`, `.scala-version`, README text, depend
 jar names such as `ujson_2.13-...jar` or `scala-library-2.13.14.jar`, then `2.13`.
 
 If a build fails, the full compiler log is visible on your publisher dashboard.
+
+## Browser Beta builds
+
+Browser Beta is currently a proof of work, not an automatic Scala converter.
+A game opts in with a native JavaScript module in its own repository:
+
+```json
+"browser": {
+  "runtime": "canvas-module",
+  "directory": "web",
+  "entry": "game.js",
+  "viewport": { "width": 900, "height": 563 },
+  "controlsPreset": "directional-action",
+  "inputs": {
+    "hint": { "code": "KeyH", "label": "Hint", "mode": "press" }
+  }
+}
+```
+
+A successful package receives the derived **optimized** tag. ISC Steam validates
+and stores the static files, then provides the page, canvas, sandbox, fullscreen
+mode, and manifest-driven controls. Browser packaging failure does not discard a
+successful desktop package.
+
+`controlsPreset` accepts `none`, `directional`, `directional-action`,
+`platformer`, `wasd`, or `custom`; explicit inputs add or replace actions. The
+server does not execute repository-provided build commands, so generated web
+files must already be committed. See [the optimized game.js guide](./OPTIMIZED_WEB_GAME.md)
+for the module API, asset/audio rules, and a complete example.
 
 ## Using JavaFX
 

@@ -24,8 +24,8 @@ export function uploadFromBuffer(buffer, filename, contentType) {
   });
 }
 
-export function openDownload(fileId) {
-  return bucket().openDownloadStream(new mongoose.Types.ObjectId(fileId));
+export function openDownload(fileId, options) {
+  return bucket().openDownloadStream(new mongoose.Types.ObjectId(fileId), options);
 }
 
 export async function fileInfo(fileId) {

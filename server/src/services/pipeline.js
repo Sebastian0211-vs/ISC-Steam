@@ -8,6 +8,7 @@ import AdmZip from 'adm-zip';
 import Game from '../models/Game.js';
 import { readManifest, ManifestError } from './manifest.js';
 import { uploadFromBuffer, uploadFromPath, deleteFile } from '../config/gridfs.js';
+import { installBrowserBundle, removeBrowserBundle } from './browserBundle.js';
 
 const run = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -158,7 +159,6 @@ async function buildGame(gameId) {
     }
 
     log.add(`${scalaFiles.length} Scala source file(s)`);
-
     const resolvedMainClass = await resolveMainClass(m.mainClass, scalaFiles, log);
     m.mainClass = resolvedMainClass;
     game.mainClass = resolvedMainClass;
@@ -477,6 +477,28 @@ async function buildGame(gameId) {
         // Linux variant is best-effort: the Windows package already succeeded
         log.add(`Warning: Linux package failed - ${err.message}`);
       }
+    }
+
+    if (m.browser) {
+      const hadBrowserBundle = game.browserFiles.length > 0 && !!game.browserEntry;
+      game.browserBuildStatus = 'packaging';
+      game.browserBuildLog = `Packaging ${m.browser.directory}/${m.browser.entry}`;
+      await game.save();
+      try {
+        await log.phase('packaging', `Packaging Browser Beta from ${m.browser.directory} …`);
+        const browser = await installBrowserBundle(game, repoDir, m.browser);
+        log.add(`Browser Beta OK (${browser.files} files, ${(browser.size / 1024 / 1024).toFixed(1)} MB)`);
+      } catch (err) {
+        game.browserBuildStatus = hadBrowserBundle ? 'stale' : 'failed';
+        game.browserBuildLog = hadBrowserBundle
+          ? `Latest package failed; serving the previous browser build. ${err.message}`
+          : err.message;
+        await game.save();
+        log.add(`Warning: Browser Beta package failed - ${err.message}`);
+      }
+    } else if (game.browserFiles.length || game.browserBuildStatus !== 'none') {
+      await removeBrowserBundle(game);
+      log.add('Browser Beta removed (no browser target in isc.json).');
     }
 
     game.builtAt = new Date();

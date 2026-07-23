@@ -64,7 +64,10 @@ function metadataFromBody(body, fallback = {}) {
     description: String(body.description ?? fallback.description ?? shortDescription).trim().slice(0, 8000),
     version: String(body.version ?? fallback.version ?? '1.0.0').trim().slice(0, 30) || '1.0.0',
     authors: parseList(body.authors ?? fallback.authors).slice(0, 10),
-    tags: parseList(body.tags ?? fallback.tags).map((t) => t.toLowerCase()).slice(0, 8),
+    tags: parseList(body.tags ?? fallback.tags)
+      .map((t) => t.toLowerCase())
+      .filter((tag) => tag !== 'optimized')
+      .slice(0, 8),
     controls: String(body.controls ?? fallback.controls ?? '').trim().slice(0, 300),
     year: parseYear(body.year ?? fallback.year),
     engine: {
@@ -228,10 +231,26 @@ export async function listGames(req, res, next) {
   try {
     const filter = { published: true };
     // Web entries never go through the build pipeline; games must have built successfully.
-    if (req.query.type === 'web') filter.sourceType = 'web';
+    if (['1', 'true'].includes(String(req.query.browser ?? '').toLowerCase())) Object.assign(filter, {
+      sourceType: { $ne: 'web' },
+      browserRuntime: 'canvas-module',
+      browserBuildStatus: { $in: ['packaging', 'success', 'stale'] },
+      browserEntry: { $ne: '' },
+      'browserFiles.0': { $exists: true },
+    });
+    else if (req.query.type === 'web') filter.sourceType = 'web';
     else if (req.query.type === 'game') Object.assign(filter, { buildStatus: 'success', sourceType: { $ne: 'web' } });
     else filter.$or = [{ buildStatus: 'success' }, { sourceType: 'web' }];
-    if (req.query.tag) filter.tags = String(req.query.tag).toLowerCase();
+    if (req.query.tag) {
+      const requestedTag = String(req.query.tag).toLowerCase();
+      if (requestedTag === 'optimized') Object.assign(filter, {
+        browserRuntime: 'canvas-module',
+        browserBuildStatus: { $in: ['packaging', 'success', 'stale'] },
+        browserEntry: { $ne: '' },
+        'browserFiles.0': { $exists: true },
+      });
+      else filter.tags = requestedTag;
+    }
     if (req.query.featured) filter.featured = true;
     if (req.query.search) filter.$text = { $search: String(req.query.search) };
 
@@ -246,8 +265,19 @@ export async function listGames(req, res, next) {
 // GET /api/games/tags - distinct tags across published games (for filters)
 export async function listTags(req, res, next) {
   try {
-    const tags = await Game.distinct('tags', { published: true });
-    res.json(tags.sort());
+    const [tags, hasOptimizedGame] = await Promise.all([
+      Game.distinct('tags', { published: true }),
+      Game.exists({
+        published: true,
+        browserRuntime: 'canvas-module',
+        browserBuildStatus: { $in: ['packaging', 'success', 'stale'] },
+        browserEntry: { $ne: '' },
+        'browserFiles.0': { $exists: true },
+      }),
+    ]);
+    const publicTags = tags.filter((tag) => tag !== 'optimized');
+    if (hasOptimizedGame) publicTags.push('optimized');
+    res.json([...new Set(publicTags)].sort());
   } catch (err) {
     next(err);
   }
@@ -407,6 +437,7 @@ export async function listMine(req, res, next) {
     const uid = req.user._id.toString();
     res.json(games.map((g) => ({
       ...g.toStore(),
+      tags: g.tags.filter((tag) => tag !== 'optimized'),
       buildLog: g.buildLog,
       sourceType: g.sourceType,
       branch: g.branch,
@@ -489,6 +520,7 @@ export async function deleteGame(req, res, next) {
     if (!canManage(req.user, game)) return res.status(403).json({ error: 'Not your game' });
     if (game.packageFileId) await deleteFile(game.packageFileId);
     if (game.linuxPackageFileId) await deleteFile(game.linuxPackageFileId);
+    for (const file of game.browserFiles) await deleteFile(file.fileId);
     for (const media of game.media) await deleteFile(media.fileId);
     await game.deleteOne();
     res.status(204).end();

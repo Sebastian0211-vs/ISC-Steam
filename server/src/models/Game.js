@@ -11,6 +11,26 @@ const mediaSchema = new mongoose.Schema(
   { _id: true },
 );
 
+const browserFileSchema = new mongoose.Schema(
+  {
+    path: { type: String, required: true, maxlength: 500 },
+    fileId: { type: mongoose.Schema.Types.ObjectId, required: true }, // GridFS
+    contentType: { type: String, required: true, maxlength: 100 },
+    size: { type: Number, required: true, min: 0 },
+  },
+  { _id: false },
+);
+
+const browserInputSchema = new mongoose.Schema(
+  {
+    action: { type: String, required: true, maxlength: 31 },
+    label: { type: String, required: true, maxlength: 24 },
+    code: { type: String, required: true, maxlength: 31 },
+    mode: { type: String, enum: ['hold', 'press'], default: 'press' },
+  },
+  { _id: false },
+);
+
 const collabRequestSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -70,6 +90,25 @@ const gameSchema = new mongoose.Schema(
     linuxPackageFileId: { type: mongoose.Schema.Types.ObjectId }, // GridFS zip (Linux)
     linuxPackageFilename: { type: String, trim: true, default: '' },
     linuxPackageSize: { type: Number, default: 0 },
+
+    // No-install browser build supplied by isc.json.browser and packaged by the pipeline.
+    browserBuildStatus: {
+      type: String,
+      enum: ['none', 'queued', 'packaging', 'success', 'stale', 'failed'],
+      default: 'none',
+    },
+    browserBuildLog: { type: String, default: '', maxlength: 10000 },
+    browserEntry: { type: String, trim: true, default: '' },
+    browserRuntime: { type: String, default: 'canvas-module' },
+    browserControlsPreset: { type: String, trim: true, default: 'none', maxlength: 30 },
+    browserViewport: {
+      width: { type: Number, default: 960, min: 240, max: 4096 },
+      height: { type: Number, default: 600, min: 180, max: 4096 },
+    },
+    browserInputs: { type: [browserInputSchema], default: [] },
+    browserFiles: { type: [browserFileSchema], default: [] },
+    browserSize: { type: Number, default: 0 },
+    browserBuiltAt: { type: Date },
   },
   { timestamps: true },
 );
@@ -80,6 +119,14 @@ gameSchema.index({ title: 'text', shortDescription: 'text', tags: 'text' });
 gameSchema.methods.toStore = function toStore() {
   const cover = this.media.find((m) => m.kind === 'cover');
   const screenshots = this.media.filter((m) => m.kind === 'screenshot');
+  const browserPlayable = this.published
+    && this.browserRuntime === 'canvas-module'
+    && ['packaging', 'success', 'stale'].includes(this.browserBuildStatus)
+    && !!this.browserEntry
+    && this.browserFiles.length > 0;
+  const browserOptimized = browserPlayable;
+  const publicTags = this.tags.filter((tag) => tag !== 'optimized');
+  if (browserOptimized) publicTags.unshift('optimized');
   return {
     id: this._id,
     slug: this.slug,
@@ -88,7 +135,7 @@ gameSchema.methods.toStore = function toStore() {
     description: this.description,
     version: this.version,
     authors: this.authors,
-    tags: this.tags,
+    tags: publicTags,
     controls: this.controls,
     year: this.year,
     engine: this.engine,
@@ -103,6 +150,16 @@ gameSchema.methods.toStore = function toStore() {
     packageSize: this.packageSize,
     downloadable: this.buildStatus === 'success' && !!this.packageFileId,
     downloadableLinux: this.buildStatus === 'success' && !!this.linuxPackageFileId,
+    browserBuildStatus: this.browserBuildStatus,
+    browserSize: this.browserSize,
+    browserBuiltAt: this.browserBuiltAt,
+    browserRuntime: this.browserRuntime,
+    browserControlsPreset: this.browserControlsPreset,
+    browserViewport: this.browserViewport,
+    browserInputs: this.browserInputs,
+    browserPlayable,
+    browserOptimized,
+    playUrl: browserPlayable ? `/api/games/${this.slug}/play/` : null,
     coverUrl: cover ? `/api/games/${this.slug}/media/${cover._id}` : null,
     screenshotUrls: screenshots.map((s) => `/api/games/${this.slug}/media/${s._id}`),
     updatedAt: this.updatedAt,

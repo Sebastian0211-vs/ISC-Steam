@@ -4,6 +4,7 @@ import { api, downloadUrl } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { TagRow } from '../components/GameCard.jsx';
 import Reviews from '../components/Reviews.jsx';
+import BrowserGameFrame from '../components/BrowserGameFrame.jsx';
 
 const isDesktop = typeof window !== 'undefined' && !!window.iscSteam?.desktop;
 
@@ -120,6 +121,24 @@ export default function GameDetail() {
               </div>
             )}
 
+            {!isWeb && game.browserPlayable && (
+              <div className="game-inline-browser" id="browser-player">
+                <div className="game-inline-browser-head">
+                  <div>
+                    <p className="eyebrow">Play instantly</p>
+                    <h2>Play {game.title} in your browser</h2>
+                  </div>
+                  <span className={`beta-label${game.browserOptimized ? ' optimized' : ''}`}>
+                    {game.browserOptimized ? 'Optimized for web' : 'No installation'}
+                  </span>
+                </div>
+                <BrowserGameFrame game={game} showLargeLink />
+                <p className="web-embed-hint">
+                  The player and controls belong to ISC Steam; the game remains isolated from your account data.
+                </p>
+              </div>
+            )}
+
             {shots.length > 0 && (
               <>
                 <img className="screenshot-main" src={shots[shot]} alt={`${game.title} screenshot`} />
@@ -162,6 +181,9 @@ export default function GameDetail() {
 
               <div className="download-row">
                 <span className="price-free">Free</span>
+                {!isWeb && game.browserPlayable && (
+                  <a className="btn btn-primary" href="#browser-player">Play in browser β</a>
+                )}
                 {isWeb ? (
                   <a className="btn btn-primary" href={game.websiteUrl} target="_blank" rel="noreferrer">
                     Visit site ↗
@@ -174,9 +196,9 @@ export default function GameDetail() {
                       Add to library
                     </button>
                   )
-                ) : (
+                ) : !game.browserPlayable ? (
                   <Link className="btn btn-primary" to="/login">Sign in to play</Link>
-                )}
+                ) : null}
                 {!isWeb && user && !isDesktop && game.downloadable && (
                   <a className="btn btn-secondary" href={downloadUrl(game.slug)}>Windows</a>
                 )}

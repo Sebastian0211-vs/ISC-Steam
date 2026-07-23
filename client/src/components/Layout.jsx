@@ -45,6 +45,7 @@ export default function Layout() {
           <nav className="nav" aria-label="Main">
             <NavLink to="/" end>Store</NavLink>
             <NavLink to="/web">Web</NavLink>
+            <NavLink to="/beta" className="nav-beta-link">Beta <span>β</span></NavLink>
             {user && <NavLink to="/library">Library</NavLink>}
             {isStudent && (
               <NavLink to="/dashboard" className="nav-with-badge">

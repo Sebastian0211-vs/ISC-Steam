@@ -17,6 +17,87 @@ function relPath(p, field) {
   return clean;
 }
 
+const BROWSER_PRESETS = Object.freeze({
+  none: [],
+  directional: [
+    { action: 'up', label: '↑', code: 'ArrowUp', mode: 'hold' },
+    { action: 'left', label: '←', code: 'ArrowLeft', mode: 'hold' },
+    { action: 'down', label: '↓', code: 'ArrowDown', mode: 'hold' },
+    { action: 'right', label: '→', code: 'ArrowRight', mode: 'hold' },
+  ],
+  'directional-action': [
+    { action: 'up', label: '↑', code: 'ArrowUp', mode: 'hold' },
+    { action: 'left', label: '←', code: 'ArrowLeft', mode: 'hold' },
+    { action: 'down', label: '↓', code: 'ArrowDown', mode: 'hold' },
+    { action: 'right', label: '→', code: 'ArrowRight', mode: 'hold' },
+    { action: 'action', label: 'Action', code: 'Space', mode: 'press' },
+    { action: 'restart', label: 'Restart', code: 'KeyR', mode: 'press' },
+  ],
+  platformer: [
+    { action: 'left', label: '←', code: 'ArrowLeft', mode: 'hold' },
+    { action: 'right', label: '→', code: 'ArrowRight', mode: 'hold' },
+    { action: 'jump', label: 'Jump', code: 'Space', mode: 'hold' },
+    { action: 'restart', label: 'Restart', code: 'KeyR', mode: 'press' },
+  ],
+  wasd: [
+    { action: 'up', label: 'W', code: 'KeyW', mode: 'hold' },
+    { action: 'left', label: 'A', code: 'KeyA', mode: 'hold' },
+    { action: 'down', label: 'S', code: 'KeyS', mode: 'hold' },
+    { action: 'right', label: 'D', code: 'KeyD', mode: 'hold' },
+  ],
+  custom: [],
+});
+
+function browserManifest(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    fail('"browser" must be an object');
+  }
+
+  const runtime = String(value.runtime ?? 'canvas-module').toLowerCase();
+  if (runtime !== 'canvas-module') {
+    fail('"browser.runtime" must be "canvas-module"');
+  }
+
+  const entry = relPath(value.entry ?? 'game.js', 'browser.entry');
+  if (!/\.m?js$/i.test(entry)) fail('"browser.entry" must be a JS module');
+
+  const preset = String(value.controlsPreset ?? 'none').toLowerCase();
+  if (!Object.hasOwn(BROWSER_PRESETS, preset)) {
+    fail(`"browser.controlsPreset" must be one of: ${Object.keys(BROWSER_PRESETS).join(', ')}`);
+  }
+
+  const width = Number(value.viewport?.width ?? 960);
+  const height = Number(value.viewport?.height ?? 600);
+  if (!Number.isInteger(width) || width < 240 || width > 4096) fail('"browser.viewport.width" must be between 240 and 4096');
+  if (!Number.isInteger(height) || height < 180 || height > 4096) fail('"browser.viewport.height" must be between 180 and 4096');
+
+  const mergedInputs = new Map(BROWSER_PRESETS[preset].map((input) => [input.action, { ...input }]));
+  if (value.inputs != null && (!value.inputs || typeof value.inputs !== 'object' || Array.isArray(value.inputs))) {
+    fail('"browser.inputs" must be an object mapping action names to keyboard codes');
+  }
+  for (const [action, rawInput] of Object.entries(value.inputs ?? {})) {
+    if (!/^[a-z][a-z0-9-]{0,30}$/.test(action)) fail(`invalid browser input action "${action}"`);
+    const spec = typeof rawInput === 'string' ? { code: rawInput } : rawInput;
+    if (!spec || typeof spec !== 'object' || Array.isArray(spec)) fail(`browser input "${action}" must be a key code or object`);
+    const code = String(spec.code ?? '').trim();
+    if (!/^[A-Za-z][A-Za-z0-9]{0,30}$/.test(code)) fail(`browser input "${action}" has an invalid keyboard code`);
+    const label = String(spec.label ?? action.replaceAll('-', ' ')).trim().slice(0, 24);
+    const mode = String(spec.mode ?? 'press').toLowerCase();
+    if (!['hold', 'press'].includes(mode)) fail(`browser input "${action}" mode must be "hold" or "press"`);
+    mergedInputs.set(action, { action, label: label || action, code, mode });
+  }
+  if (mergedInputs.size > 12) fail('"browser.inputs" may expose at most 12 controls');
+
+  return {
+    directory: relPath(value.directory ?? 'web', 'browser.directory'),
+    entry,
+    runtime,
+    viewport: { width, height },
+    controlsPreset: preset,
+    inputs: [...mergedInputs.values()],
+  };
+}
+
 export async function readManifest(repoDir, fallbackSlug = 'isc-game') {
   let raw;
   try {
@@ -53,11 +134,17 @@ export async function readManifest(repoDir, fallbackSlug = 'isc-game') {
     javafxModules = [...new Set(['base', 'graphics', ...wanted])]; // base+graphics are always required
   }
 
-  const tags = Array.isArray(m.tags) ? m.tags.slice(0, 8).map((t) => String(t).toLowerCase().trim()) : [];
+  const tags = Array.isArray(m.tags)
+    ? m.tags.map((t) => String(t).toLowerCase().trim()).filter((tag) => tag && tag !== 'optimized').slice(0, 8)
+    : [];
   const authors = Array.isArray(m.authors) ? m.authors.slice(0, 10).map((a) => String(a).trim()) : [];
   const sources = (Array.isArray(m.sources) && m.sources.length ? m.sources : ['src']).map((s, i) => relPath(s, `sources[${i}]`));
   const resources = (Array.isArray(m.resources) ? m.resources : sources).map((r, i) => relPath(r, `resources[${i}]`));
   const screenshots = (Array.isArray(m.screenshots) ? m.screenshots.slice(0, 6) : []).map((s, i) => relPath(s, `screenshots[${i}]`));
+  let browser = null;
+  if (m.browser != null) {
+    browser = browserManifest(m.browser);
+  }
 
   return {
     title: m.title.trim(),
@@ -81,6 +168,7 @@ export async function readManifest(repoDir, fallbackSlug = 'isc-game') {
     resources,
     cover: m.cover ? relPath(m.cover, 'cover') : null,
     screenshots,
+    browser,
     inferred: false,
   };
 }
@@ -140,6 +228,7 @@ async function inferManifest(repoDir, fallbackSlug) {
     resources: resourceDirs,
     cover: null,
     screenshots: [],
+    browser: null,
     inferred: true,
   };
 }

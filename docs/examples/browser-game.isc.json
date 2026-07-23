@@ -1,0 +1,28 @@
+{
+  "iscVersion": 1,
+  "title": "Grid Quest",
+  "shortDescription": "Navigate compact puzzle rooms, collect keys, and reach the exit.",
+  "description": "Grid Quest challenges players to solve compact rooms filled with obstacles, locked doors, and moving hazards.\n\nMade for the ISC 1st-year course at HES-SO Valais.",
+  "version": "1.0.0",
+  "authors": ["Alex Martin", "Camille Rey"],
+  "tags": ["puzzle", "2d", "keyboard"],
+  "cover": "src/res/banner.png",
+  "screenshots": ["src/res/screenshot1.png", "src/res/screenshot2.png"],
+  "engine": { "name": "fungraphics", "version": "1.5.15" },
+  "scalaVersion": "2.13",
+  "mainClass": "Main",
+  "sources": ["src"],
+  "resources": ["src/res"],
+  "browser": {
+    "runtime": "canvas-module",
+    "directory": "web",
+    "entry": "game.js",
+    "viewport": { "width": 900, "height": 563 },
+    "controlsPreset": "directional-action",
+    "inputs": {
+      "hint": { "code": "KeyH", "label": "Hint", "mode": "press" }
+    }
+  },
+  "controls": "Arrow keys to move · R reset · H hint",
+  "year": 2026
+}

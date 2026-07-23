@@ -102,12 +102,12 @@ back to `PATH`.
    `build.sbt`, `.scala-version`, and dependency jar names.
 3. The build pipeline imports cover art and screenshots into GridFS, resolves
    dependencies, compiles `.scala` sources, creates runnable packages, and saves
-   the full build log.
+   the full build log. A declared optimized web module is packaged separately.
 4. An admin publishes or features the game. Published games appear in the store
    and can be added to a player's library.
 
 See [`docs/ISC_MANIFEST.md`](docs/ISC_MANIFEST.md) for the complete manifest
-format and [`docs/examples/isctaker.isc.json`](docs/examples/isctaker.isc.json)
+format and [`docs/examples/browser-game.isc.json`](docs/examples/browser-game.isc.json)
 for an example.
 
 ## Game Build Pipeline
@@ -131,6 +131,8 @@ Package output:
   `/api/games/:slug/download`
 - Linux package: produced on Linux build servers when the required Linux runtime
   tooling is available, served with `?platform=linux`
+- Browser Beta: packages an explicit `game.js` canvas module declared in
+  `isc.json`; the current ISCtaker port is the proof of work
 
 Local game builds need compatible Scala and Java tooling. The production Docker
 image installs git, a JDK, Scala 2.13, Windows JDK jmods, and JavaFX jmods so it
@@ -138,10 +140,23 @@ can compile and package student submissions in the container.
 
 ## Web Features
 
+### Browser Beta
+
+`/beta` presents optimized no-install experiments and `/beta/:slug` provides a
+large sandboxed player. The game repository supplies a native `game.js`; ISC
+Steam supplies the page, canvas, fullscreen mode, and manifest-driven controls.
+Published canvas modules receive the derived **optimized** tag. The contract is
+documented in [`docs/OPTIMIZED_WEB_GAME.md`](docs/OPTIMIZED_WEB_GAME.md).
+
+This does not automatically convert FunGraphics, gdx2d, or JavaFX bytecode. The
+Beta page documents why existing desktop games still need a tailored web port.
+
 Core pages:
 
 - `/`: public store catalog with tags, search, featured games, and game cards
 - `/game/:slug`: game detail page, screenshots, reviews, authors, downloads
+- `/beta`: Browser Beta catalog for no-install games
+- `/beta/:slug`: sandboxed browser-game player
 - `/library`: signed-in user's library and playtime
 - `/dashboard`: publisher tools for submissions and rebuilds
 - `/admin`: admin moderation, users, games, stats, and announcement controls
@@ -203,8 +218,10 @@ All client calls use `/api`.
 | `POST /api/auth/login` | public | Log in and receive a JWT. |
 | `GET /api/auth/me` | token | Read the current user. |
 | `GET /api/games` | public | Published store catalog. |
+| `GET /api/games?browser=1` | public | Published Browser Beta catalog. |
 | `GET /api/games/tags` | public | Available tags. |
 | `GET /api/games/:slug` | public/optional token | Game details. |
+| `GET /api/games/:slug/play/*` | public | Stream a published browser build and its assets. |
 | `GET /api/games/:slug/media/:mediaId` | public | Cover and screenshot media. |
 | `GET /api/games/:slug/download?platform=linux` | token | Download a packaged game; omit `platform` for Windows. |
 | `GET /api/games/:slug/reviews` | public/optional token | List reviews. |

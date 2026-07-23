@@ -233,8 +233,19 @@
 /* Responsive -------------------------------------------------------------------- */
 
 @media (max-width: 640px) {
-  .topbar-inner { flex-wrap: wrap; }
+  .topbar-inner { flex-wrap: wrap; gap: var(--space-2); }
   .brand-app { border-left: none; padding-left: 0; }
+  .brand img { height: 28px; }
+  .nav {
+    width: 100%;
+    align-items: center;
+    gap: var(--space-3);
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav > * { flex: 0 0 auto; }
   .item-form { flex-direction: column; }
 }
 
@@ -245,6 +256,18 @@
   min-width: 1.2rem; height: 1.2rem; padding: 0 0.35rem;
   border-radius: 999px; background: var(--isc-magenta, #d6006e);
   color: var(--isc-on-magenta, #fff); font-size: var(--text-xs); font-weight: 600; line-height: 1;
+}
+
+.nav-beta-link { display: inline-flex; align-items: center; gap: 0.35rem; }
+.nav-beta-link span {
+  display: inline-grid;
+  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: var(--isc-lavender);
+  color: var(--isc-on-facet);
+  font: 700 0.68rem var(--font-mono);
 }
 .collab-count {
   display: inline-flex; align-items: center; justify-content: center;

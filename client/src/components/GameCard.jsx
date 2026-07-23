@@ -7,7 +7,7 @@ export function TagRow({ tags, max = 3 }) {
   return (
     <span className="tag-row">
       {tags.slice(0, max).map((t, i) => (
-        <span key={t} className={`badge badge-${FACETS[i % FACETS.length]}`}>{t}</span>
+        <span key={t} className={`badge ${t === 'optimized' ? 'badge-optimized' : `badge-${FACETS[i % FACETS.length]}`}`}>{t}</span>
       ))}
     </span>
   );

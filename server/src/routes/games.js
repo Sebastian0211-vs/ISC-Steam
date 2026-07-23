@@ -5,6 +5,7 @@ import {
   inspectRepo, createGame, listMine, rebuildGame, updateGame, deleteGame,
   requestCollab, listIncomingCollab, acceptCollab, declineCollab, removeCollaborator,
 } from '../controllers/gameController.js';
+import { browserGameFile, browserGameRoot } from '../controllers/browserGameController.js';
 import { optionalAuth, requireAuth, requireRole } from '../middleware/auth.js';
 import { listReviews, upsertReview, deleteReview } from '../controllers/reviewController.js';
 import { UPLOAD_LIMITS } from '../config/uploadLimits.js';
@@ -29,6 +30,8 @@ router.get('/tags', listTags);
 router.get('/mine', requireAuth, requireRole('student'), listMine);
 // co-ownership requests waiting on games I manage (must precede /:slug)
 router.get('/collab-requests', requireAuth, requireRole('student'), listIncomingCollab);
+router.get('/:slug/play', browserGameRoot);
+router.get('/:slug/play/*', browserGameFile);
 router.get('/:slug', optionalAuth, getGame);
 router.get('/:slug/media/:mediaId', getMedia);
 
